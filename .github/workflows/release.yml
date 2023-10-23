@@ -24,9 +24,9 @@ jobs:
       run: dotnet restore
     - name: Build
       run: | 
-        dotnet publish --configuration Release --no-restore --runtime osx-x64
-        dotnet publish --configuration Release --no-restore --runtime linux-x64
-        dotnet publish --configuration Release --no-restore --runtime win-x64
+        dotnet publish --configuration Release --no-restore --runtime osx-x64 --self-contained
+        dotnet publish --configuration Release --no-restore --runtime linux-x64 --self-contained
+        dotnet publish --configuration Release --no-restore --runtime win-x64 --self-contained
     - uses: vimtor/action-zip@v1.1
       with:
         files: bin/Release/net7.0/win-x64/publish/
