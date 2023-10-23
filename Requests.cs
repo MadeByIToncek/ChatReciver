@@ -1,6 +1,5 @@
 ﻿using ChatReciver.utils;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace ChatReciver
 {
@@ -15,5 +14,24 @@ namespace ChatReciver
             return Parser.parseChatData(res);
         }
 
+        //Done
+        public static LivePageData fetchLivePage(string id)
+        {
+            string url = generateLiveUrl(id);
+            if (url == null)
+            {
+                throw new Exception("ID not avaliable");
+            }
+
+            string resp = new HTTPManager(Program.client).GetAsyncString(url).Result;
+
+            return Parser.getOptionsFromLivePage(resp, id);
+        }
+
+        //Done
+        public static string generateLiveUrl(string YoutubeId)
+        {
+            return "https://www.youtube.com/watch?v=" + YoutubeId;
+        }
     }
 }

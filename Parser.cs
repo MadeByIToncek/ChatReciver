@@ -167,22 +167,45 @@ namespace ChatReciver
             author.name = authorNameText;
             author.thumbnail = parseThumbnail(messageRender["authorPhoto"]["thumbnails"].Value<JArray>());
             author.channelID = messageRender["authorExternalChannelId"].Value<string>();
-
             if (messageRender.ContainsKey("authorBadges"))
             {
                 foreach (JObject entry in messageRender["authorBadges"].Value<JArray>())
                 {
-                    if(entry.ContainsKey("customThumbnail"))
-                    {
-
+                    if(!entry.ContainsKey("customThumbnail")) {
+                        switch (entry["liveChatAuthorBadgeRenderer"]["icon"]["iconType"].Value<string>())
+                        {
+                            case "OWNER":
+                                author.isOwner = true;
+                                break;
+                            case "VERIFIED":
+                                author.isVerified = true;
+                                break;
+                            case "MODERATOR":
+                                author.isModerator = true;
+                                break;
+                        }
                     }
                 }
             }
 
             item.author = author;
             item.message = parseMessage(messages);
-
-            return null;
+            item.timestamp = DateTime.UnixEpoch.AddMicroseconds(double.Parse(messageRender["timestampUsec"].Value<string>()));
+            if(messageRender.ContainsKey("sticker"))
+            {
+                Superchat superchat = new Superchat();
+                superchat.amount = messageRender["stickerpurchaseAmountText"]["simpleText"].Value<string>();
+                superchat.color = converColorToHex6(uint.Parse(messageRender["backgroundColor"].Value<string>()));
+                superchat.sticker = parseThumbnail(messageRender["sticker"]["thumbnails"].Value<JArray>());
+                item.superchat = superchat;
+            } else if (messageRender.ContainsKey("purchaseAmountText"))
+            {
+                Superchat superchat = new Superchat();
+                superchat.amount = messageRender["purchaseAmountText"]["simpleText"].Value<string>();
+                superchat.color = converColorToHex6(uint.Parse(messageRender["bodyBackgroundColor"].Value<string>()));
+                item.superchat = superchat;
+            }
+            return item;
         }
     }
 }

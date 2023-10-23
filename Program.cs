@@ -1,12 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-using System;
-using System.Net;
-using System.Data.Common;
-using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
-using ChatReciver.utils;
-
-namespace ChatReciver
+﻿namespace ChatReciver
 {
     internal class Program
     {

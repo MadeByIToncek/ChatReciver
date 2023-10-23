@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace ChatReciver.utils
+﻿namespace ChatReciver.utils
 {
     public class ChatData
     {
@@ -14,10 +12,6 @@ namespace ChatReciver.utils
         public Author author;
         public string message;
         public Superchat? superchat;
-        public bool isMembership;
-        public bool isVerified;
-        public bool isOwner;
-        public bool isModerator;
         public DateTime timestamp;
     }
 
@@ -27,12 +21,16 @@ namespace ChatReciver.utils
         public string thumbnail;
         public string channelID;
         public string badgeThumbnail;
+        public bool isMembership = false;
+        public bool isVerified = false;
+        public bool isOwner = false;
+        public bool isModerator = false;
     }
 
     public class Superchat
     {
         public string amount;
         public string color;
-        public string sticker;
+        public string? sticker;
     }
 }
