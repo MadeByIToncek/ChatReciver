@@ -23,19 +23,37 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet publish --configuration Release --no-restore
+      run: | 
+        dotnet publish --configuration Release --no-restore --runtime osx-x64
+        dotnet publish --configuration Release --no-restore --runtime linux-x64
+        dotnet publish --configuration Release --no-restore --runtime win-x64
     - uses: vimtor/action-zip@v1.1
       with:
-        files: bin/Release/net7.0/publish/
-        dest: build.zip
+        files: bin/Release/net7.0/win-x64/publish/
+        dest: linux.zip
+    - uses: vimtor/action-zip@v1.1
+      with:
+        files: bin/Release/net7.0/linux-x64/publish/
+        dest: windows.zip
+    - uses: vimtor/action-zip@v1.1
+      with:
+        files: bin/Release/net7.0/osx-x64/publish/
+        dest: osx.zip
+                  
     - uses: actions/upload-artifact@v3
       with:
         name: plugins
-        path: build.zip
+        path: |
+          windows.zip
+          linux.zip
+          osx.zip
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: true
         title: "Development Build"
-        files: build.zip
+        files: |
+          windows.zip
+          linux.zip
+          osx.zip
