@@ -8,7 +8,8 @@ on:
     branches: [ "master" ]
 
 jobs:
-  prepare:
+  build:
+    name: Build all packages
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -32,11 +33,19 @@ jobs:
     - name: Zippin'
       run: |
         zip win-x64 bin/Release/net7.0/win-x64/publish/*
+        zip win-x86 bin/Release/net7.0/win-x64/publish/*
+        zip linux-x64 bin/Release/net7.0/win-x64/publish/*
+        zip linux-arm bin/Release/net7.0/win-x64/publish/*
+        zip linux-arm64 bin/Release/net7.0/win-x64/publish/*
     - uses: actions/upload-artifact@v3
       with:
         name: plugins
         path: |
           win-x64.zip 
+          win-x86.zip 
+          linux-x64.zip 
+          linux-arm.zip 
+          linux-arm64.zip 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -44,4 +53,8 @@ jobs:
         prerelease: true
         title: "Development Build"
         files: |
-          win-x64.zip
+          win-x64.zip 
+          win-x86.zip 
+          linux-x64.zip 
+          linux-arm.zip 
+          linux-arm64.zip 
