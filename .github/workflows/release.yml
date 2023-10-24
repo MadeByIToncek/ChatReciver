@@ -15,7 +15,7 @@ jobs:
       contents: write
       security-events: write  
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -25,16 +25,18 @@ jobs:
     - name: Build
       run: | 
         dotnet publish -c Release -r win-x64 --self-contained -p:PublishReadyToRun=true
+        dotnet publish -c Release -r win-x86 --self-contained -p:PublishReadyToRun=true
         dotnet publish -c Release -r linux-x64 --self-contained -p:PublishReadyToRun=true
+        dotnet publish -c Release -r linux-arm --self-contained -p:PublishReadyToRun=true
+        dotnet publish -c Release -r linux-arm64 --self-contained -p:PublishReadyToRun=true
     - name: Zippin'
       run: |
-        zip win-x64 
+        zip win-x64 bin/Release/net7.0/win-x64/publish/*
     - uses: actions/upload-artifact@v3
       with:
         name: plugins
         path: |
-          win-x64.zip bin/Release/net7.0/win-x64/publish/*
-          linux-x64.zip bin/Release/net7.0/linux-x64/publish/*
+          win-x64.zip 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -43,4 +45,3 @@ jobs:
         title: "Development Build"
         files: |
           win-x64.zip
-          linux-x64.zip
