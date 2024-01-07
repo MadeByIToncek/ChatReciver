@@ -1,4 +1,5 @@
 rootProject.name = 'ChatReciever'
 include 'api'
 include 'examples'
+include 'pollManager'
 
