@@ -16,15 +16,17 @@ public class Requests {
         return Parser.getLivePageData(HTTPManager.getHTTPString("https://www.youtube.com/watch?v="+id));
     }
     public static ChatData fetchChat(LivePageData data) throws IOException {
-        String url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key=" + data.apiKey();
+        //System.out.println(data);
+        String url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key=" + data.apiKey;
         JSONObject body = new JSONObject();
         body.put("context", new JSONObject()
                 .put("client", new JSONObject()
-                        .put("clientVersion", data.clientVersion())
+                        .put("clientVersion", data.clientVersion)
                         .put("clientName", "WEB")));
-        body.put("continuation", data.continuation());
+        body.put("continuation", data.continuation);
 
         JSONObject res = HTTPManager.postHTTPJSONObject(url, body);
+        //System.out.println(res.toString(4));
         return Parser.parseChatData(res);
     }
 }

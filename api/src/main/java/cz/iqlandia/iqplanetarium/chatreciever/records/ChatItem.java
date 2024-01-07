@@ -7,30 +7,22 @@ public record ChatItem(
         String id,
         Author author,
         String message,
-        Optional<Superchat> superchat,
-        boolean isMembership,
-        boolean isVerified,
-        boolean isOwner,
-        boolean isModerator,
         LocalDateTime timestamp) {
 
-    private record Author(
+    public record Author(
        String name,
        Optional<ImageItem> thumbnail,
        String channelID,
-       Optional<Badge> badge
+       Optional<Badge> badge,
+       boolean isVerified,
+       boolean isOwner,
+       boolean isModerator
     ) {
-        private record Badge(
+        public record Badge(
                 ImageItem thumbnail,
                 String Label) {
         }
     }
-
-    private record Superchat(
-       String amount,
-       String color,
-       Optional<ImageItem> sticker
-    ) {}
 
     public record ImageItem(
             String url,
