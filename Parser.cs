@@ -1,18 +1,20 @@
 ﻿using ChatReciver.utils;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace ChatReciver
 {
     internal class Parser
     {
         //Done
-        public static LivePageData getOptionsFromLivePage(string resp, string id)
+        public static LivePageData GetOptionsFromLivePage(string resp, string id)
         {
 #pragma warning disable CS8604 // Possible null reference argument.
-            LivePageData data = new();
-
-            data.liveId = id;
+            LivePageData data = new()
+            {
+                liveId = id
+            };
 
             string api = @"['""]INNERTUBE_API_KEY['""]:\s*['""](.+?)['""]";
             string cliver = @"['""]clientVersion['""]:\s*['""]([\d.]+?)['""]";
@@ -59,21 +61,26 @@ namespace ChatReciver
 #pragma warning restore CS8604 // Possible null reference argument.
         }
 
-        public static ChatData parseChatData(JObject json)
+        public static ChatData ParseChatData(JObject json)
         {
+
+#pragma warning disable CS8604 // Possible null reference argument.
             if (json == null) throw new Exception("Response unavaliable");
 
             ChatData data = new();
 
+            JArray actions = json["continuationContents"]?["liveChatContinuation"]?["actions"]?.Value<JArray>();
+            ChatItem[] objectArray = new ChatItem[actions.Count];
 
-            JArray actions = json["continuationContents"]["liveChatContinuation"]["actions"].Value<JArray>();
-            ChatItem[] objectArray = new ChatItem[actions.Count()];
             if (actions != null)
             {
                 int index = 0;
-                foreach (JObject item in actions)
+                foreach (JObject item in actions.Cast<JObject>())
                 {
-                    objectArray[index] = Parser.parseActionToChatItem(item);
+                    if (!item.ContainsKey("addChatItemAction")) continue;
+                    if (!item["addChatItemAction"].Contains("item")) continue;
+                    if (!item["addChatItemAction"]["item"].Contains("liveChatTextMessageRenderer")) continue;
+                    objectArray[index] = ParseActionToChatItem(item);
                     index++;
                 }
             }
@@ -85,35 +92,37 @@ namespace ChatReciver
             if (continuationData["invalidationContinuationData"] != null)
             {
                 continuation = continuationData["invalidationContinuationData"]["continuation"].Value<String>();
-            } else if (continuationData["timedContinuationData"] != null)
+            }
+            else if (continuationData["timedContinuationData"] != null)
             {
                 continuation = continuationData["timedContinuationData"]["continuation"].Value<String>();
             }
 
             data.continuation = continuation;
 
+#pragma warning restore CS8604 // Possible null reference argument.
             return data;
         }
 
 
-        public static string parseThumbnail(JArray data)
+        public static string ParseThumbnail(JArray data)
         {
-            JObject imageData = data[-1].Value<JObject>();
+            JObject imageData = data.Last.Value<JObject>();
             return imageData["url"].Value<string>();
         }
 
-        public static string converColorToHex6(uint colorNum)
+        public static string ConverColorToHex6(uint colorNum)
         {
-            return "#" + (colorNum.ToString("X")).Substring(0).ToUpper();
+            return "#" + (colorNum.ToString("X"))[..].ToUpper();
         }
 
-        public static string parseMessage(JArray messages)
+        public static string ParseMessage(JArray messages)
         {
             string[] strings = new string[messages.Count];
             int i = 0;
-            foreach (JObject item in messages)
+            foreach (JObject item in messages.Cast<JObject>())
             {
-                if (messages.Contains("texz"))
+                if (messages.Contains("text"))
                 {
                     strings[i] = item["text"].Value<string>();
                 } else
@@ -127,82 +136,90 @@ namespace ChatReciver
             return output;
         }
 
-        public static JObject renderFromAction(JObject data) 
+        public static JObject RenderFromAction(JObject data) 
         {
             if (data["addChatItemAction"] == null) return null;
             JObject item = data["addChatItemAction"]["item"].Value<JObject>();
 
-            if (isNotNull(item["liveChatTextMessageRenderer"])) return item["liveChatTextMessageRenderer"].Value<JObject>();
-            else if (isNotNull(item["liveChatPaidMessageRenderer"])) return item["liveChatPaidMessageRenderer"].Value<JObject>();
-            else if (isNotNull(item["liveChatPaidStickerRenderer"])) return item["liveChatPaidStickerRenderer"].Value<JObject>();
-            else if (isNotNull(item["liveChatMembershipItemRenderer"])) return item["liveChatMembershipItemRenderer"].Value<JObject>();
+            if (IsNotNull(item["liveChatTextMessageRenderer"])) return item["liveChatTextMessageRenderer"].Value<JObject>();
+            else if (IsNotNull(item["liveChatPaidMessageRenderer"])) return item["liveChatPaidMessageRenderer"].Value<JObject>();
+            else if (IsNotNull(item["liveChatPaidStickerRenderer"])) return item["liveChatPaidStickerRenderer"].Value<JObject>();
+            else if (IsNotNull(item["liveChatMembershipItemRenderer"])) return item["liveChatMembershipItemRenderer"].Value<JObject>();
             else return null;
         }
 
-        private static bool isNotNull(JToken? jToken)
+        private static bool IsNotNull(JToken? jToken)
         {
             return jToken != null;
         }
 
-        public static ChatItem parseActionToChatItem(JObject data)
+        public static ChatItem ParseActionToChatItem(JObject data)
         {
+            Console.WriteLine(data.ToString());
             ChatItem item = new ();
-            JObject messageRender = renderFromAction(data);
+            JObject messageRender = RenderFromAction(data);
             if (messageRender == null) return null;
 
-            JArray messages = new JArray();
+            JArray messages = new();
 
             if(data.ContainsKey("message"))
             {
-                messages = data["message"]["runs"].Value<JArray>();
+                messages = data["message"]?["runs"]?.Value<JArray>();
             } else if (data.ContainsKey("headerSubtext"))
             {
                 messages = data["headerSubtext"]["runs"].Value<JArray>();
             }
-            string authorNameText = messageRender["authorName"]?["simpleText"].Value<string>() ?? "";
+            string authorNameText = messageRender["authorName"]?["simpleText"]?.Value<string>() ?? "";
 
             item.id = messageRender["id"].Value<string>();
 
-            Author author = new Author();
-            author.name = authorNameText;
-            author.thumbnail = parseThumbnail(messageRender["authorPhoto"]["thumbnails"].Value<JArray>());
-            author.channelID = messageRender["authorExternalChannelId"].Value<string>();
+            Author author = new()
+            {
+                name = authorNameText,
+                thumbnail = ParseThumbnail(messageRender["authorPhoto"]["thumbnails"].Value<JArray>()),
+                channelID = messageRender["authorExternalChannelId"].Value<string>()
+            };
             if (messageRender.ContainsKey("authorBadges"))
             {
-                foreach (JObject entry in messageRender["authorBadges"].Value<JArray>())
+                foreach (var entry in from JObject entry in messageRender["authorBadges"].Value<JArray>()
+                                      where !entry.ContainsKey("customThumbnail")
+                                      select entry)
                 {
-                    if(!entry.ContainsKey("customThumbnail")) {
-                        switch (entry["liveChatAuthorBadgeRenderer"]["icon"]["iconType"].Value<string>())
-                        {
-                            case "OWNER":
-                                author.isOwner = true;
-                                break;
-                            case "VERIFIED":
-                                author.isVerified = true;
-                                break;
-                            case "MODERATOR":
-                                author.isModerator = true;
-                                break;
-                        }
-                    }
+
+                    //switch (entry["liveChatAuthorBadgeRenderer"]["icon"]["iconType"].Value<string>())
+                    //{
+                    //    case "OWNER":
+                    //        author.isOwner = true;
+                    //        break;
+                    //    case "VERIFIED":
+                    //        author.isVerified = true;
+                    //        break;
+                    //    case "MODERATOR":
+                    //        author.isModerator = true;
+                    //        break;
+                    //}
                 }
             }
 
             item.author = author;
-            item.message = parseMessage(messages);
+            item.message = ParseMessage(messages);
             item.timestamp = DateTime.UnixEpoch.AddMicroseconds(double.Parse(messageRender["timestampUsec"].Value<string>()));
             if(messageRender.ContainsKey("sticker"))
             {
-                Superchat superchat = new Superchat();
-                superchat.amount = messageRender["stickerpurchaseAmountText"]["simpleText"].Value<string>();
-                superchat.color = converColorToHex6(uint.Parse(messageRender["backgroundColor"].Value<string>()));
-                superchat.sticker = parseThumbnail(messageRender["sticker"]["thumbnails"].Value<JArray>());
+                Superchat superchat = new()
+                {
+                    amount = messageRender["stickerpurchaseAmountText"]["simpleText"].Value<string>(),
+                    color = ConverColorToHex6(uint.Parse(messageRender["backgroundColor"].Value<string>())),
+                    sticker = ParseThumbnail(messageRender["sticker"]["thumbnails"].Value<JArray>())
+                };
                 item.superchat = superchat;
             } else if (messageRender.ContainsKey("purchaseAmountText"))
             {
-                Superchat superchat = new Superchat();
-                superchat.amount = messageRender["purchaseAmountText"]["simpleText"].Value<string>();
-                superchat.color = converColorToHex6(uint.Parse(messageRender["bodyBackgroundColor"].Value<string>()));
+                Superchat superchat = new()
+                {
+                    amount = messageRender["purchaseAmountText"]["simpleText"].Value<string>(),
+                    color = ConverColorToHex6(uint.Parse(messageRender["bodyBackgroundColor"].Value<string>()))
+                };
                 item.superchat = superchat;
             }
             return item;

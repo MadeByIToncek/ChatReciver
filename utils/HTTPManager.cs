@@ -6,7 +6,7 @@ namespace ChatReciver.utils
 {
     internal class HTTPManager
     {
-        private HttpClient _client;
+        private readonly HttpClient _client;
         public HTTPManager(HttpClient _client) {
             this._client = _client;
         }
@@ -31,7 +31,9 @@ namespace ChatReciver.utils
         }
         public async Task<JObject> PostAsyncJObject(string uri, string body)
         {
-            var content = new StringContent(body, Encoding.UTF8, MediaTypeHeaderValue.Parse(""));
+            //Console.WriteLine(uri);
+            //Console.WriteLine(body);
+            var content = new StringContent(body, Encoding.UTF8, MediaTypeHeaderValue.Parse("application/json"));
             var response = await _client.PostAsync(uri, content);
             return JObject.Parse(response.Content.ReadAsStringAsync().Result);
         }

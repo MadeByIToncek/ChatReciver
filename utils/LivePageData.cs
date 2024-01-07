@@ -10,7 +10,7 @@
 
         override public string ToString()
         {
-            return "[" + liveId + "," + apiKey + "," + clientVersion + "," + continuation + "]";
+            return "{ \"liveID\":" + liveId + ", \"apiKey\": " + apiKey + ", \"clientVersion\":" + clientVersion + ", \"continuation\":" + continuation + "}";
         }
     }
 }

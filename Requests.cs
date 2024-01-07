@@ -5,31 +5,37 @@ namespace ChatReciver
 {
     internal class Requests
     {
-        public static ChatData fetchChat()
+        public static async Task<ChatData> FetchChat(LivePageData options)
         {
-            string url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key=${options.apiKey}";
+            string url = "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key=" + options.apiKey;
+            JObject body = new JObject();
+            JObject context = new JObject();
+            JObject client = new JObject();
 
-            JObject res = new HTTPManager(ChatReciver.Program.client).GetAsyncJObject(url).Result;
+            client["clientVersion"] = options.clientVersion;
+            client["clientName"] = "WEB";
 
-            return Parser.parseChatData(res);
+            context["client"] = client;
+            body["context"] = context;
+            body["continuation"] = options.continuation;
+
+            JObject res = await new HTTPManager(ChatReciver.Program.client).PostAsyncJObject(url, body.ToString());
+            //Console.WriteLine(res.ToString());
+            return Parser.ParseChatData(res);
+            //return null;
         }
 
         //Done
-        public static LivePageData fetchLivePage(string id)
+        public static async Task<LivePageData> FetchLivePage(string id)
         {
-            string url = generateLiveUrl(id);
-            if (url == null)
-            {
-                throw new Exception("ID not avaliable");
-            }
+            string url = GenerateLiveUrl(id) ?? throw new Exception("ID not avaliable");
+            string resp = await new HTTPManager(Program.client).GetAsyncString(url);
 
-            string resp = new HTTPManager(Program.client).GetAsyncString(url).Result;
-
-            return Parser.getOptionsFromLivePage(resp, id);
+            return Parser.GetOptionsFromLivePage(resp, id);
         }
 
         //Done
-        public static string generateLiveUrl(string YoutubeId)
+        public static string GenerateLiveUrl(string YoutubeId)
         {
             return "https://www.youtube.com/watch?v=" + YoutubeId;
         }
