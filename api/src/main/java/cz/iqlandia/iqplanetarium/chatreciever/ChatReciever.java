@@ -9,7 +9,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ChatReciever {
-    EventHandler handler;
+    public EventHandler handler;
 
     private String liveID;
     private final Timer timer;
