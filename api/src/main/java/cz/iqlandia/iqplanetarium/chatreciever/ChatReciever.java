@@ -42,6 +42,7 @@ public class ChatReciever {
         timer.cancel();
         timer.purge();
         handler.fireShutdownEvent();
+        handler.listeners.clear();
     }
 
     private TimerTask executor() {

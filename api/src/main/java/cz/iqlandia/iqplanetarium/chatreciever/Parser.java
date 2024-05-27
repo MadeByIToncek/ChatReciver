@@ -7,9 +7,9 @@ import org.json.JSONObject;
 
 import java.awt.*;
 import java.text.ParseException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -179,7 +179,7 @@ public class Parser {
 
 
         ChatItem.Author author = new ChatItem.Author(authorName, Optional.of(thumbnail), authorID, badge, isVerified, isOwner, isModerator);
-        return new ChatItem(item.getString("id"), author, message, LocalDateTime.ofEpochSecond(item.getLong("timestampUsec"), 0, ZoneOffset.UTC).atZone(ZoneId.systemDefault()));
+        return new ChatItem(item.getString("id"), author, message, ZonedDateTime.ofInstant(Instant.ofEpochSecond(item.getLong("timestampUsec")/1000000), ZoneId.of("Europe/Prague")));
     }
 
     private static String convertToString(JSONObject o) {

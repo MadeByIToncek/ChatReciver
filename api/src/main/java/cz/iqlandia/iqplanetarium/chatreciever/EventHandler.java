@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventHandler {
-    private final List<Listener> listeners = new ArrayList<>();
+    final List<Listener> listeners = new ArrayList<>();
 
     public void addListener(Listener listener) {
         listeners.add(listener);
@@ -35,6 +35,10 @@ public class EventHandler {
         for (Listener listener : listeners) {
             listener.error(reason);
         }
+    }
+
+    public void removeListener(Listener listener) {
+        listeners.remove(listener);
     }
 }
 
